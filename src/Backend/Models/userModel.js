@@ -9,7 +9,7 @@ const userModel = new schema({
         type: String,
         unique: true,
       },
-    verificationToken: String,
+    verificationCode: String,
     isVerified: {
         type: Boolean,
         default: false,
