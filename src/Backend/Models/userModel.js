@@ -5,16 +5,7 @@ const AutoIncrement = require('mongoose-sequence')(mongoose);
 const userModel = new schema({
     id : Number,
     password: String,
-    email: {
-        type: String,
-        unique: true,
-      },
-    verificationCode: String,
-    isVerified: {
-        type: Boolean,
-        default: false,
-      }
-
+    name : String
 
 });
 

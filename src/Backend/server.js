@@ -6,7 +6,7 @@ const winston = require('winston'); //To display information in the logfile inst
 
 
 require('./Startup/logging')();
-// require('./Startup/routes')(app);
+require('./Startup/routes')(app);
 require('./Startup/database')();
 
 

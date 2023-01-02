@@ -1,21 +1,24 @@
-const amenitiesModel = require('../Models/amenitiesModel');
 const userModel = require('../Models/userModel');
+const bcrypt = require ('bcrypt');
+const bcryptjs=require("bcryptjs");
+const todoModel = require('../Models/todoModel');
 
 const createUser = async (req, res) =>{
     try{
         //check required fields to create user
-        if (!req.body.password || !req.body.email){
+        if (!req.body.password || !req.body.name){
             return res.status(400).json({ 'message': 'Fill required entries' });
 
         }
+        password = await bcrypt.hash(req.body.password, 10)
         //create user
         const user = new userModel({
-            email : req.body.email,
-            password : req.body.password
+            name : req.body.name,
+            password : password
 
         })
         //save user into database and send 200 response
-        await user.save().then(res.status(200).json({ "message": `User ${user.id} saved successfully` }));;
+        await user.save().then(res.status(200).json({ "message": `User ${req.body.name} saved successfully` }));;
         
 
     }
@@ -25,48 +28,40 @@ const createUser = async (req, res) =>{
     }
 }
 
-const verifyEmail = async (req, res) =>{
+const deleteUser = async (req, res) =>{
     try{
-        //find user with the request email
-        const user = await userModel.findOne({email:req.body.email});
-
-        //generate random 6 letter code 
-        const code = Math.floor(Math.random() * (999999 - 123456 + 1)) + 123456;
-
-        //save the generated code to the assigned user
-        user.verificationCode = code;
-        await user.save();
-
-        //simplicity in this task we only console log the code to verify
-        res.status(200).json({"message":"verification code sent successfully to your mail"});
-
-
-    }
-
-    catch(err){
-        return res.status(500).json({error:err.message});
-    }
-}
-
-const userSignUp = async (req, res) =>{
-    try{
-        const code = req.body.verificationCode;
-        let user = await userModel.findOne({email:req.body.email});
+        if(!req.body.id){
+            res.json({'mess':'Enter user ID'})
+        }
+        const user = await userModel.findOne({id:req.body.id})
         if(user){
-            //request code must match user code to signup 
-            if(user.code==code){
-                 user = await userModel.findOneAndUpdate({email:req.body.email},{isVerified:true});
-                res.json({'mess':'Verified succeffully'})
-
-            }
-            res.json({'mess':'Incorrect verification code'})
-
+            await userModel.deleteOne({id:user.id})
+            res.json({'mess':'User deleted successfully'})
         }
         else{
-            res.json({'mess':'No user found'})
+            res.json({'mess':"No user found with this ID"})
         }
+        
+    }
 
+    catch(err){
+        return res.status(500).json({error:err.message});
+    }
+}
 
+const getUserInfo = async (req, res) =>{
+    try{
+     if(!req.body.id){
+        res.json({'mess':'Please enter user ID'})
+     }
+     const user = await userModel.findOne({id:req.body.id})
+     if(user){
+        const todos = await todoModel.find({userID:user.id})
+        res.json({user:user,userToDo:todos})
+     }
+     else{
+        res.json({'mess':'No user found with this ID'})
+     }
 
     }
 
@@ -75,10 +70,9 @@ const userSignUp = async (req, res) =>{
     }
 }
 
-
 module.exports = {
-    getAmenity,
-    updateAmenity,
-    deleteAmenity,
-    createAmenity
+    createUser,
+    deleteUser,
+    getUserInfo
+
 }
